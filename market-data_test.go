@@ -38,7 +38,7 @@ func TestMarketDataAPI(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	chains, err := agent.GetChains("AAPL")
+	chains, err := agent.GetChains("AAPL", "50")
 
 	if err != nil {
 		t.Fatal(err.Error())

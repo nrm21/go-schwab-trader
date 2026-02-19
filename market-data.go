@@ -477,13 +477,14 @@ func (agent *Agent) GetMovers(index, direction, change string) ([]Screener, erro
 }
 
 // get all option chains for a ticker
-func (agent *Agent) GetChains(symbol string) (Chain, error) {
+func (agent *Agent) GetChains(symbol, strikeCount string) (Chain, error) {
 	req, err := http.NewRequest("GET", endpointOptions, nil)
 	if err != nil {
 		return Chain{}, err
 	}
 	q := req.URL.Query()
 	q.Add("symbol", symbol)
+	q.Add("strikeCount", strikeCount)
 	req.URL.RawQuery = q.Encode()
 	resp, err := agent.Handler(req)
 	if err != nil {
