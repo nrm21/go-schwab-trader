@@ -337,7 +337,8 @@ type SingleLegOrder struct {
 	Duration    string `default:"DAY"`
 	Strategy    string `default:"SINGLE"`
 	Instruction string
-	Quantity    float32
+	Price       string
+	Quantity    int
 	Instrument  SimpleOrderInstrument
 }
 
@@ -410,7 +411,7 @@ func Instruction(instruction string) SingleLegOrderComposition {
 }
 
 // Set SingleLegOrder.Quantity
-func Quantity(quantity float32) SingleLegOrderComposition {
+func Quantity(quantity int) SingleLegOrderComposition {
 	return func(order *SingleLegOrder) {
 		order.Quantity = quantity
 	}
@@ -429,6 +430,7 @@ var OrderTemplate = `
   "session": "%s",
   "duration": "%s",
   "orderStrategyType": "%s",
+  "price": "%s",
   "orderLegCollection": [
     %s
   ]
@@ -438,27 +440,28 @@ var OrderTemplate = `
 var LegTemplate = `
 {
   "instruction": "%s",
-  "quantity": %f,
+  "quantity": %d,
   "instrument": {
     "symbol": "%s",
     "assetType": "%s"
   }
-},
+}
 `
 
 var LegTemplateLast = `
 {
   "instruction": "%s",
-  "quantity": %f,
+  "quantity": %d,
   "instrument": {
     "symbol": "%s",
     "assetType": "%s"
   }
-},
+}
 `
 
 func marshalSingleLegOrder(order *SingleLegOrder) string {
-	return fmt.Sprintf(OrderTemplate, order.OrderType, order.Session, order.Duration, order.Strategy, fmt.Sprintf(LegTemplate, order.Instruction, order.Quantity, order.Instrument.Symbol, order.Instrument.AssetType))
+	return fmt.Sprintf(OrderTemplate, order.OrderType, order.Session, order.Duration, order.Strategy, order.Price,
+		fmt.Sprintf(LegTemplate, order.Instruction, order.Quantity, order.Instrument.Symbol, order.Instrument.AssetType))
 }
 
 func marshalMultiLegOrder(order *MultiLegOrder) string {
