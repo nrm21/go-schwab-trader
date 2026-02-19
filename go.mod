@@ -1,4 +1,4 @@
-module github.com/go-schwab/trader
+module github.com/nrm21/go-schwab-trader
 
 go 1.23.2
 
