@@ -185,28 +185,6 @@ type InitialBalance struct {
 	AccountValue                     float64
 }
 
-/*type CurrentBalance struct {
-	AvailableFunds                   float64
-	AvailableFundsNonMarginableTrade float64
-	BuyingPower                      float64
-	BuyingPowerNonMarginableTrade    float64
-	DayTradingBuyingPower            float64
-	DayTradingBuyingPowerCall        float64
-	Equity                           float64
-	EquityPercentage                 float64
-	LongMarginValue                  float64
-	MaintenanceCall                  float64
-	MaintenanceRequirement           float64
-	MarginBalance                    float64
-	RegTCall                         float64
-	ShortBalance                     float64
-	ShortMarginValue                 float64
-	SMA                              float64
-	IsInCall                         float64
-	StockBuyingPower                 float64
-	OptionBuyingPower                float64
-}*/
-
 type CurrentBalance struct {
 	AccruedInterest                  float64
 	CashBalance                      float64
@@ -459,27 +437,73 @@ var LegTemplateLast = `
 }
 `
 
+var OrderTemplateTest = `
+{
+  "orderType": "NET_CREDIT",
+  "session": "NORMAL",
+  "duration": "DAY",
+  "price": 3.50,
+  "orderStrategyType": "SINGLE",
+  "complexOrderStrategyType": "VERTICAL",
+  "orderLegCollection": [
+    {
+      "instruction": "BUY_TO_OPEN",
+      "quantity": 1,
+      "instrument": {
+        "symbol": "SPXW  260306P06805000",
+        "assetType": "OPTION"
+      }
+    },
+    {
+      "instruction": "SELL_TO_OPEN",
+      "quantity": 1,
+      "instrument": {
+        "symbol": "SPXW  260306P06815000",
+        "assetType": "OPTION"
+      }
+    }
+  ]
+}
+	`
+
 func marshalSingleLegOrder(order *SingleLegOrder) string {
 	return fmt.Sprintf(OrderTemplate, order.OrderType, order.Session, order.Duration, order.Strategy, order.Price,
 		fmt.Sprintf(LegTemplate, order.Instruction, order.Quantity, order.Instrument.Symbol, order.Instrument.AssetType))
 }
 
 func marshalMultiLegOrder(order *MultiLegOrder) string {
-	var legs string
-	// UNTESTED
-	for i, leg := range order.OrderLegCollection {
-		if i != len(order.OrderLegCollection)-1 {
-			legs += fmt.Sprintf(LegTemplate, leg.Instruction, leg.Quantity, leg.Instrument.Symbol, leg.Instrument.AssetType)
-		} else {
-			legs += fmt.Sprintf(LegTemplateLast, leg.Instruction, leg.Quantity, leg.Instrument.Symbol, leg.Instrument.AssetType)
-		}
-	}
-	return fmt.Sprintf(OrderTemplate)
+	return fmt.Sprintf(OrderTemplateTest)
+
+	// var legs string
+	// // UNTESTED
+	// for i, leg := range order.OrderLegCollection {
+	// 	if i != len(order.OrderLegCollection)-1 {
+	// 		legs += fmt.Sprintf(LegTemplate, leg.Instruction, leg.Quantity, leg.Instrument.Symbol, leg.Instrument.AssetType)
+	// 	} else {
+	// 		legs += fmt.Sprintf(LegTemplateLast, leg.Instruction, leg.Quantity, leg.Instrument.Symbol, leg.Instrument.AssetType)
+	// 	}
+	// }
+	// return fmt.Sprintf(OrderTemplate)
 }
 
 // Submit a single-leg order for the specified encrypted account ID
 func (agent *Agent) SubmitSingleLegOrder(hashValue string, order *SingleLegOrder) error {
 	orderJson := marshalSingleLegOrder(order)
+	req, err := http.NewRequest("POST", fmt.Sprintf(endpointAccountOrders, hashValue), strings.NewReader(orderJson))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	_, err = agent.Handler(req)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Submit a multi-leg order for the specified encrypted account ID
+func (agent *Agent) SubmitMultiLegOrder(hashValue string, order *MultiLegOrder) error {
+	orderJson := marshalMultiLegOrder(order)
 	req, err := http.NewRequest("POST", fmt.Sprintf(endpointAccountOrders, hashValue), strings.NewReader(orderJson))
 	if err != nil {
 		return err

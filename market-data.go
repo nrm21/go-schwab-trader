@@ -307,7 +307,91 @@ type OptionDeliverables struct {
 	DeliverableUnits float64
 }
 
-// WIP: func GetQuotes(symbols string) Quote, error) {}
+// GetQuotes returns an array of Quote; containing a real time quote of the desired stock's performance with a number of different indicators (including volatility, volume, price, fundamentals & more).
+// It takes one parameter:
+// symbols = "AAPL,AMD,MSFT,$SPX", etc.
+func (agent *Agent) GetQuotes(symbols string) ([]Quote, error) {
+	req, err := http.NewRequest("GET", endpointQuotes, nil)
+	if err != nil {
+		return []Quote{}, err
+	}
+	q := req.URL.Query()
+	q.Add("symbols", symbols)
+	q.Add("fields", "quote")
+	req.URL.RawQuery = q.Encode()
+	resp, err := agent.Handler(req)
+	if err != nil {
+		return []Quote{}, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return []Quote{}, err
+	}
+	var allQuotesRaw map[string]interface{}
+	var allQuotes []Quote
+	err = sonic.UnmarshalString(string(body), &allQuotesRaw)
+
+	var quote Quote
+	for key1, value1 := range allQuotesRaw {
+		quote.Symbol = key1
+		for key2, value2 := range value1.(map[string]interface{}) {
+			if key2 == "quote" {
+				for key3, value3 := range value2.(map[string]interface{}) {
+					switch key3 {
+					case "52WeekHigh":
+						quote.Hi52 = value3.(float64)
+					case "52WeekLow":
+						quote.Lo52 = value3.(float64)
+					case "askPrice":
+						quote.AskPrice = value3.(float64)
+					case "askSize":
+						quote.AskSize = int(value3.(float64))
+					case "askTime":
+						quote.AskTime = int(value3.(float64))
+					case "bidPrice":
+						quote.BidPrice = value3.(float64)
+					case "bidSize":
+						quote.BidSize = int(value3.(float64))
+					case "bidTime":
+						quote.BidTime = int(value3.(float64))
+					case "closePrice":
+						quote.Close = value3.(float64)
+					case "highPrice":
+						quote.HiPrice = value3.(float64)
+					case "lastPrice":
+						quote.LastPrice = value3.(float64)
+					case "lowPrice":
+						quote.LoPrice = value3.(float64)
+					case "mark":
+						quote.Mark = value3.(float64)
+					case "markChange":
+						quote.MarkChange = value3.(float64)
+					case "markPercentChange":
+						quote.MarkPercentChange = value3.(float64)
+					case "netChange":
+						quote.NetChange = value3.(float64)
+					case "netPercentChange":
+						quote.NetPercentChange = value3.(float64)
+					case "openPrice":
+						quote.Open = value3.(float64)
+					case "quoteTime":
+						quote.QuoteTime = int(value3.(float64))
+					case "securityStatus":
+						quote.SecurityStatus = value3.(string)
+					case "totalVolume":
+						quote.TotalVolume = int(value3.(float64))
+					case "tradeTime":
+						quote.TradeTime = int(value3.(float64))
+					}
+				}
+			}
+		}
+		allQuotes = append(allQuotes, quote)
+	}
+
+	return allQuotes, err
+}
 
 // Quote returns a Quote; containing a real time quote of the desired stock's performance with a number of different indicators (including volatility, volume, price, fundamentals & more).
 // It takes one parameter:
