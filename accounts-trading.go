@@ -249,18 +249,18 @@ type FullOrder struct {
 	OrderType                string
 	CancelTime               string
 	ComplexOrderStrategyType string
-	Quantity                 int
-	FilledQuantity           int
-	RemainingQuantity        int
+	Quantity                 float64
+	FilledQuantity           float64
+	RemainingQuantity        float64
 	RequestedDestination     string
 	DestinationLinkName      string
 	ReleaseTime              string
-	StopPrice                int
+	StopPrice                float64
 	StopPriceLinkBasis       string
 	StopPriceLinkType        string
 	StopPriceOffset          int
 	StopType                 string
-	Price                    string
+	Price                    float64
 	TaxLotMethod             string
 	OrderLegCollection       []FullOrderLeg
 	ActivationPrice          int
@@ -276,23 +276,23 @@ type FullOrder struct {
 	AccountNumber            int
 	OrderActivityCollection  []FullOrderActivity
 	ReplacingOrderCollection string
-	ChildOrderStrategies     string
+	ChildOrderStrategies     []interface{}
 	StatusDescription        string
 }
 
 type FullOrderActivity struct {
 	ActivityType           string
 	ExecutionType          string
-	Quantity               int
-	OrderRemainingQuantity int
+	Quantity               float64
+	OrderRemainingQuantity float64
 	ExecutionLegs          []FullExecutionLeg
 }
 
 type FullExecutionLeg struct {
 	LegId             int
-	Price             int
-	Quantity          int
-	MismarkedQuantity int
+	Price             float64
+	Quantity          float64
+	MismarkedQuantity float64
 	InstrumentId      int
 	Time              string
 }
@@ -303,7 +303,7 @@ type FullOrderLeg struct {
 	Instrument     InstrumentRef
 	Instruction    string
 	PositionEffect string
-	Quantity       int
+	Quantity       float64
 	QuantityType   string
 	DivCapGains    string
 	ToSymbol       string
